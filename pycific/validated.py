@@ -10,6 +10,19 @@ from pyrsistent._pmap import PMap
 class ValidationError(ValueError):
     pass
 
+class ValidatedStr(str):
+    def __new__(cls, value):
+        self = super().__new__(cls, value)
+        try:
+            self._validate()
+        except Exception as e:
+            raise ValidationError('Attempt to validate input failed during ValidatedStr instantiation')
+        return self
+
+    @abstractmethod
+    def _validate(self):
+        ...
+
 class ValidatedPMap(PMap, ABC):
     def __new__(cls, initial:Mapping={}, pre_size=0, *args, **kwargs):
 
