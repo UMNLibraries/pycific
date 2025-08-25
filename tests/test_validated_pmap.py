@@ -34,7 +34,8 @@ def example():
     })
 
 def test_types(example):
-    assert isinstance(example, (PMap, ValidatedPMap, ExampleMap))
+    for type in [PMap, ValidatedPMap, ExampleMap]:
+        assert isinstance(example, type)
     
     assert isinstance(example.foo, str)
 

@@ -11,12 +11,18 @@ class ExampleStr(ValidatedStr):
             raise ValueError(f'ExampleStr value {self} is invalid: must be one to five characters, all digits')
         return self
 
-@pytest.fixture
-def example():
-    return ExampleStr('123')
+def test_types():
+    example = ExampleStr('123')
+    for type in [str, ValidatedStr, ExampleStr]:
+        assert isinstance(example, type)
+    assert example == '123'
 
-def test_types(example):
-    assert isinstance(example, (str, ValidatedStr, ExampleStr))
+def test_int_input():
+    example = ExampleStr(123)
+    for type in [str, ValidatedStr, ExampleStr]:
+        assert isinstance(example, type)
+    assert example == '123'
+    assert not isinstance(example, int)
 
 def test_invalid_value():
     with pytest.raises(ValidationError):
