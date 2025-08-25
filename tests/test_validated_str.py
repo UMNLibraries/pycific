@@ -1,4 +1,3 @@
-from typing import Mapping, Sequence
 import re
 
 import pytest
