@@ -10,7 +10,7 @@ from pyrsistent._pmap import PMap
 class ValidationError(ValueError):
     pass
 
-class ValidatedStr(str):
+class ValidatedStr(str, ABC):
     def __new__(cls, value):
         self = super().__new__(cls, value)
         try:
