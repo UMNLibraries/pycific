@@ -7,6 +7,8 @@ from pycific.validated import ValidatedPMap, ValidatedPMapSpec, ValidationError
 from pyrsistent._pmap import PMap
 from pyrsistent._pvector import PVector
 
+from returns.result import Failure, Result, Success
+
 class ExampleMapValidated(ValidatedPMapSpec):
     foo: str
     bar: PVector
@@ -20,18 +22,20 @@ class ExampleMap(ValidatedPMap):
             baz=self.baz,
         )
 
+example_dict = {
+    'foo': 'manchoo',
+    'bar': ['the', 'door'],
+    'baz': {
+        'names': {'given': 'Mark', 'middle': ['Anthony'], 'nick': ['Baz'], 'surname': 'Luhrmann'},
+        'titles': ['AC'],
+        'movies': ['Strictly Ballroom', 'Romeo + Juliet', 'Moulin Rouge!'],
+    },
+    'extra': {'extra': 'Read all about it!'},
+}
+
 @pytest.fixture
 def example():
-    return ExampleMap({
-        'foo': 'manchoo',
-        'bar': ['the', 'door'],
-        'baz': {
-            'names': {'given': 'Mark', 'middle': ['Anthony'], 'nick': ['Baz'], 'surname': 'Luhrmann'},
-            'titles': ['AC'],
-            'movies': ['Strictly Ballroom', 'Romeo + Juliet', 'Moulin Rouge!'],
-        },
-        'extra': {'extra': 'Read all about it!'},
-    })
+    return ExampleMap(example_dict)
 
 def test_types(example):
     for type in [PMap, ValidatedPMap, ExampleMap]:
@@ -68,3 +72,17 @@ def test_missing_key():
 def test_bogus_value():
     with pytest.raises(ValidationError):
         bogus_value_example = ExampleMap({'foo': 'kung', 'bar': None, 'baz': {'profession': 'filmmaker'}})
+
+def test_factory():
+    match ExampleMap.factory(example_dict):
+        case Success(ExampleMap() as example):
+            assert isinstance(example, ExampleMap)
+        case Failure(ValidationError as should_not_happen):
+            raise should_not_happen
+
+    match ExampleMap.factory({'foo': 'kung', 'bar': None, 'baz': {'profession': 'filmmaker'}}):
+        case Success(ExampleMap() as bogus_value_example):
+            raise Exception(f'Attempt to validate {bogus_value_example} should have raised an exception')
+        case Failure(ValidationError as validation_error):
+            assert isinstance(validation_error, Exception)
+            #print(f'{validation_error=}')

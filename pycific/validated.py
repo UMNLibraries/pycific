@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import Mapping
+from typing import Mapping, Self
 
 from pydantic import BaseModel
 
 from pyrsistent import freeze, pmap, pvector
 from pyrsistent._pmap import PMap
+
+from returns.result import Result, safe
 
 class ValidationError(ValueError):
     pass
@@ -22,6 +24,11 @@ class ValidatedStr(str, ABC):
     @abstractmethod
     def _validate(self):
         ...
+
+    @classmethod
+    @safe
+    def factory(cls, value) -> Result[Self, ValidationError]:
+        return cls(value)
 
 class ValidatedPMap(PMap, ABC):
     def __new__(cls, initial:Mapping={}, pre_size=0, *args, **kwargs):
@@ -46,6 +53,11 @@ class ValidatedPMap(PMap, ABC):
         except Exception as e:
             raise ValidationError('Attempt to validate input failed during ValidatedPMap instantiation')
         return self
+
+    @classmethod
+    @safe
+    def factory(cls, initial:Mapping={}, pre_size=0, *args, **kwargs) -> Result[Self, ValidationError]:
+        return cls(initial, pre_size=pre_size, *args, **kwargs)
 
     @abstractmethod
     def _validate(self):
